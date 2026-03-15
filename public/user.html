@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>👤 Панель пользователя</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+        #logout { background: #f44336; }
+        .placeholder { background: #f0f0f0; padding: 20px; border-radius: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>👤 Панель пользователя</h2>
+    <p>Привет, <span id="userName"></span>!</p>
+    
+    <div class="placeholder">
+        <h3>📊 Аналитика</h3>
+        <p>Здесь будут графики:</p>
+        <ul>
+            <li>Точность по эпохам</li>
+            <li>Распределение классов</li>
+            <li>Точность по записям</li>
+            <li>Топ-5 классов</li>
+        </ul>
+    </div>
+    
+    <div class="placeholder">
+        <h3>📁 Загрузка тестовых данных</h3>
+        <input type="file" id="fileInput" accept=".npz">
+        <button onclick="uploadFile()">Загрузить</button>
+        <p id="uploadResult"></p>
+    </div>
+    
+    <button id="logout">🚪 Выйти</button>
+
+    <script>
+        // Проверка авторизации
+        fetch('/api/me')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                document.getElementById('userName').textContent = data.name;
+            })
+            .catch(() => window.location.href = '/index.html');
+
+        // Загрузка файла (заглушка)
+        async function uploadFile() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                document.getElementById('uploadResult').textContent = 'Выберите файл!';
+                return;
+            }
+            
+            // Здесь будет реальная отправка на сервер
+            document.getElementById('uploadResult').textContent = `Файл "${file.name}" готов к обработке 🚀`;
+        }
+
+        // Выход
+        document.getElementById('logout').addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+</html>

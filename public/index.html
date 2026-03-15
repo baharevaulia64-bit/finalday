@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>👽 Alien Signal Classifier</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0 15px; box-sizing: border-box; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .error { color: red; margin: 10px 0; }
+        .success { color: green; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>🔐 Вход в систему</h2>
+    <div id="message"></div>
+    
+    <form id="loginForm">
+        <input type="text" id="login" placeholder="Логин" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <button type="submit">Войти</button>
+    </form>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('message');
+            msg.textContent = '';
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    login: document.getElementById('login').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                msg.className = 'success';
+                msg.textContent = data.message;
+                // Перенаправление по роли
+                setTimeout(() => {
+                    window.location.href = data.role === 'admin' ? '/admin.html' : '/user.html';
+                }, 1000);
+            } else {
+                msg.className = 'error';
+                msg.textContent = data.error;
+            }
+        });
+    </script>
+</body>
+</html>

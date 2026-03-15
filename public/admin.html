@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>👨‍💼 Панель администратора</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        input, select, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background: #2196F3; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0b7dda; }
+        .user-list { margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px; }
+        .user-item { padding: 8px; background: #f9f9f9; margin: 5px 0; border-radius: 4px; }
+        #logout { background: #f44336; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>👨‍💼 Админ-панель</h2>
+    <p>Привет, <span id="userName"></span>!</p>
+    
+    <h3>➕ Создать пользователя</h3>
+    <div id="message"></div>
+    <form id="createUserForm">
+        <input type="text" id="firstName" placeholder="Имя *" required>
+        <input type="text" id="lastName" placeholder="Фамилия *" required>
+        <input type="text" id="newLogin" placeholder="Логин *" required>
+        <input type="password" id="newPassword" placeholder="Пароль *" required>
+        <select id="role">
+            <option value="user">Пользователь</option>
+            <option value="admin">Администратор</option>
+        </select>
+        <button type="submit">Создать</button>
+    </form>
+    
+    <div class="user-list">
+        <h3>📋 Пользователи</h3>
+        <div id="usersList">Загрузка...</div>
+    </div>
+    
+    <button id="logout">🚪 Выйти</button>
+
+    <script>
+        // Проверка авторизации
+        fetch('/api/me')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                if (data.role !== 'admin') window.location.href = '/index.html';
+                document.getElementById('userName').textContent = data.name;
+                loadUsers();
+            })
+            .catch(() => window.location.href = '/index.html');
+
+        // Создание пользователя
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('message');
+            
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    login: document.getElementById('newLogin').value,
+                    password: document.getElementById('newPassword').value,
+                    role: document.getElementById('role').value
+                })
+            });
+            
+            const data = await response.json();
+            msg.textContent = data.message || data.error;
+            msg.style.color = response.ok ? 'green' : 'red';
+            
+            if (response.ok) {
+                e.target.reset();
+                loadUsers();
+            }
+        });
+
+        // Загрузка списка пользователей
+        async function loadUsers() {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+            document.getElementById('usersList').innerHTML = users.map(u => 
+                `<div class="user-item"><b>${u.login}</b> — ${u.first_name} ${u.last_name} [${u.role}]</div>`
+            ).join('');
+        }
+
+        // Выход
+        document.getElementById('logout').addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+</html>
